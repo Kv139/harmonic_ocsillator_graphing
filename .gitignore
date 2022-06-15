@@ -1,129 +1,220 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import tkinter as tk
+from tkinter import *
+from tkinter import ttk
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+import numpy as np
 
-# C extensions
-*.so
+# This is for my project:::
+# https://apmonitor.com/pdc/index.php/Main/SolveDifferentialEquations
+# ^^ Thank you for the code ^^ '
+# Sources! 
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# let dy/dt = v
+# let dv/dt = (-b/m)v - (k/m)y
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+def create_system(mass, sK,damping):
+    myMatrix = np.array([[1,0],[(-1*damping/mass),(-1*sK/mass)]])
+    return myMatrix
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
 
-# Translations
-*.mo
-*.pot
+def graph_system_1(myMatrix):
+    x, y = np.meshgrid(np.linspace(-2, 2, 20), np.linspace(-2, 2, 20))
+    u = y * myMatrix[0][0] + x * myMatrix[0][1]
+    v = y * myMatrix[1][0] + x * myMatrix[1][1]
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+    color = (u + v)
 
-# Flask stuff:
-instance/
-.webassets-cache
+    fig, ax = plt.subplots(figsize=(7, 7))
+    ax.quiver(x, y, u, v,color, alpha=0.9)
+    ax.set_aspect('equal')
+    ax.set_title('Figure 1 - Eq 1')
+    plt.show()
 
-# Scrapy stuff:
-.scrapy
+def graph_system_2(myThing):
+    mass = myThing[0]
+    sk   = myThing[1]
+    damping = myThing[2]
 
-# Sphinx documentation
-docs/_build/
+    x, y = np.meshgrid(np.linspace(-2, 2, 20), np.linspace(-2, 2, 20))
+    u = y
+    v = (x * (-1 * (sk / mass))) + ((abs(y) * y)) * (-1 *(damping / mass))
+    
+    color = (u + v)
+    fig, ax = plt.subplots(figsize=(7, 7))
+    ax.quiver(x, y, u, v, color, alpha=0.9)
+    ax.set_aspect('equal')
+    ax.set_title('Figure 1 - Eq 2')
+    plt.show()
 
-# PyBuilder
-target/
+def graph_system_3(myThing):
+    mass= myThing[0]
+    sk= myThing[1]
+    alpha= myThing[3]
 
-# Jupyter Notebook
-.ipynb_checkpoints
+    x, y = np.meshgrid(np.linspace(-2, 2, 30), np.linspace(-2, 2, 30))
+    u = y
+    v = ((x**2 - alpha) / mass ) * y + (sk/mass * x)
 
-# IPython
-profile_default/
-ipython_config.py
+    color = (u + v)
 
-# pyenv
-.python-version
+    fig, ax = plt.subplots(figsize=(7, 7))
+    ax.quiver(x, y, u, v, color,scale=None, alpha=0.9)
+    ax.set_aspect('equal')
+    ax.set_title('Figure 1 - Eq 3')
+    plt.show()
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
+def graph_system():
+   global entry
+   myInitCond = [float(entry.get()),  float(entry2.get()), float(entry3.get()), float(entry4.get())]
+   myThing = create_system(myInitCond[0],myInitCond[1],myInitCond[2])
+   graph_system_1(myThing)
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
+def graph_system2():
+    global entry
+    myInitCond = [float(entry.get()), float(entry2.get()), float(entry3.get()), float(entry4.get())]
+    graph_system_2(myInitCond)
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
+def graph_system3():
+    global entry
+    myInitCond = [float(entry.get()), float(entry2.get()), float(entry3.get()), float(entry4.get())]
+    graph_system_3(myInitCond)
 
-# SageMath parsed files
-*.sage.py
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# v = (x * (-1 * (sk / mass))) + ((y * y)) * (-1 *(damping / mass))
+# So we want to see our Dv/dt versus time?
+# ..
 
-# Spyder project settings
-.spyderproject
-.spyproject
 
-# Rope project settings
-.ropeproject
+def graph_model1(myThing):
+    mass = myThing[0]
+    sk = myThing[1]
+    damping = myThing[2]
 
-# mkdocs documentation
-/site
+    def model1(y, x):
+        dydt = (x * (-1 * (sk / mass))) + ((abs(y) * y)) * (-1 * (damping / mass))
+        return dydt
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+    z0 = [0,0]
+    t = np.linspace(0,5)
 
-# Pyre type checker
-.pyre/
+    V = odeint(model1,z0,t)
+
+    plt.plot(t,V[:,0],'b-',label='We do math here')
+    #plt.plot(t,z[:,1],'r--',label='#ODE')
+    plt.ylabel('dy/dt')
+    plt.xlabel('time')
+    plt.legend(loc='best')
+    plt.show()
+
+def graph_model2(myThing):
+    mass = myThing[0]
+    sK = myThing[1]
+    damping = myThing[2]
+    alpha  = myThing[3]
+
+    def model2(y, x):
+        dydt = x * (-1*damping/mass) + y * (-1*sK/mass)
+        return dydt
+
+    z0 = [0, 0]
+    t = np.linspace(0, 5)
+    K = odeint(model2, z0, t)
+
+    plt.plot(t, K[:, 0], 'b-', label=':)')
+    #plt.plot(t, z[:, 1], 'r--', label='My favorite code so far')
+    plt.ylabel('dy/dt')
+    plt.xlabel('time')
+    plt.legend(loc='best')
+    plt.show()
+
+def graph_model3(myThing):
+    mass = myThing[0]
+    sk = myThing[1]
+    alpha = myThing[3]
+
+    def model3(y, x):
+        dydt = ((x**2 - alpha) / mass ) * y + (sk/mass * x)
+        return dydt
+
+    z0 = [0, 0]
+    t = np.linspace(0, 5)
+    z = odeint(model3, z0, t)
+
+    plt.plot(t, z[:, 0], 'b-', label='This is so cool')
+    plt.plot(t, z[:, 1], 'r--', label='Still cool')
+    plt.ylabel('dy/dt')
+    plt.xlabel('time')
+   # plt.legend(loc='best')
+    plt.show()
+
+def graph_system3vT():
+    global entry
+    myInitCond = [float(entry.get()), float(entry2.get()), float(entry3.get()), float(entry4.get())]
+    graph_model3(myInitCond)
+def graph_system2vT():
+    global entry
+    myInitCond = [float(entry.get()), float(entry2.get()), float(entry3.get()), float(entry4.get())]
+    graph_model2(myInitCond)
+def graph_system1vT():
+    global entry
+    myInitCond = [float(entry.get()), float(entry2.get()), float(entry3.get()), float(entry4.get())]
+    graph_model1(myInitCond)
+
+
+
+#Create an instance of Tkinter frame
+win= Tk()
+
+#Set the geometry of Tkinter frame
+win.geometry("500x400")
+win.configure(background="pink")
+
+
+#Initialize a Label to display the User Input
+
+mass=Label(win, text="Mass", font=("Courier 22"), bg="black", fg="pink", pady="2", justify="left")
+sK=Label(win, text="Spring Const", font=("Courier 22"), bg="black", fg="pink", pady="2")
+Damping=Label(win, text="Dampening", font=("Courier 22 "), bg="black", fg="pink", pady="2")
+Alpha=Label(win, text="Alpha", font=("Courier 22 "), bg="black", fg="pink", pady="2")
+
+entry=Entry(win, width=10)
+entry2=Entry(win, width=10)
+entry3=Entry(win, width=10)
+entry4=Entry(win, width=10)
+
+#Pack da buttons
+mass.place(x=10, y=12)
+entry.focus_set()
+entry.place(x=10, y=52)
+
+sK.place(x=200, y=12)
+entry2.focus_set()
+entry2.place(x=200, y=52)
+
+Damping.place(x=10, y=110)
+entry3.focus_set()
+entry3.place(x=10, y=150)
+
+Alpha.place(x=200, y=110)
+entry4.focus_set()
+entry4.place(x=200, y=150)
+
+
+
+#Create a Button to validate Entry Widget
+but = ttk.Button(win, text= "Graph System 1",width= 20, command=graph_system)
+but.pack(side = LEFT)
+but2 = ttk.Button(win, text= "Graph System 2", width=20, command=graph_system2)
+but2.pack(side = LEFT)
+but3= ttk.Button(win, text= "Graph System 3", width=20, command=graph_system3)
+but3.pack(side = LEFT)
+but4= ttk.Button(win, text="Time versus dV/dt 1", width = 25, command=graph_system1vT)
+but4.place(x=0,y= 300)
+but4= ttk.Button(win, text="Time versus dV/dt 2", width = 25, command=graph_system2vT)
+but4.place(x= 160, y= 300)
+but4= ttk.Button(win, text="Time versus dV/dt 3", width = 25, command=graph_system3vT)
+but4.place(x=320, y=300)
+
+win.mainloop()
